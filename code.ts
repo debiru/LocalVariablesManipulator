@@ -329,7 +329,7 @@ const JSONManip = {
    * VariablesInfo を JSON 用の構造に変換する
    */
   convertVariablesInfoForJSON(variablesInfo: VariablesInfo) {
-    const jsonObj = {} as PlainObject<JSONObjVariable>;
+    const jsonObj = {} as VariablesValues;
     for (const variableInfo of Object.values(variablesInfo)) {
       const variableName = variableInfo.variable.name;
       jsonObj[variableName] = variableInfo.jsonObjVariable;
@@ -397,7 +397,7 @@ const JSONManip = {
 
         // jsonObjVariable.$hiddenFromPublishing
         if (!Util.isBoolean(validJSONObjVariable.$hiddenFromPublishing)) {
-          Util.Exception(Util.sprintf("%s['%s']['$description'] の値が真偽値ではありません。", collectionName, variableName));
+          Util.Exception(Util.sprintf("%s['%s']['$hiddenFromPublishing'] の値が真偽値ではありません。", collectionName, variableName));
         }
       }
     }

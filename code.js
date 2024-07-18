@@ -362,7 +362,7 @@ const JSONManip = {
                 }
                 // jsonObjVariable.$hiddenFromPublishing
                 if (!Util.isBoolean(validJSONObjVariable.$hiddenFromPublishing)) {
-                    Util.Exception(Util.sprintf("%s['%s']['$description'] の値が真偽値ではありません。", collectionName, variableName));
+                    Util.Exception(Util.sprintf("%s['%s']['$hiddenFromPublishing'] の値が真偽値ではありません。", collectionName, variableName));
                 }
             }
         }
