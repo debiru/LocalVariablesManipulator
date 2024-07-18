@@ -1,0 +1,140 @@
+<style>
+  :root {
+    --spacing: 0.8rem;
+    --monospace: Menlo, Monaco, "Courier New", Consolas, monospace;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background-color: var(--figma-color-bg);
+    color: var(--figma-color-text);
+    margin: 0;
+    font-family: serif;
+  }
+  button {
+    appearance: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--figma-color-bg-brand);
+    color: var(--figma-color-text-onbrand);
+    font-family: var(--monospace);
+  }
+  button:hover {
+    background-color: var(--figma-color-bg-brand-hover);
+  }
+  button[disabled] {
+    cursor: default;
+    background: #999;
+  }
+  textarea {
+    width: 100%;
+    padding: 4px;
+    border: 1px solid #999;
+    border-radius: 4px;
+    font-family: var(--monospace);
+    font-size: 0.9rem;
+    white-space: pre;
+    resize: vertical;
+  }
+  h1 {
+    margin: 0;
+    padding: 8px 16px;
+    background-image: linear-gradient(90deg, #6541C8, #2A1C63);
+    color: #fff;
+    text-align: center;
+    font-size: 1.6rem;
+  }
+  h2 {
+    margin: 0;
+  }
+  p {
+    margin: 0;
+  }
+  ul {
+    list-style: none;
+    display: flex;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+  }
+  .sections {
+    padding: var(--spacing);
+  }
+  .sections > :not(:first-child),
+  section > :not(:first-child),
+  .body > :not(:first-child) {
+    margin-top: var(--spacing);
+  }
+  #importStatusTextArea {
+    background: #eee;
+    white-space: break-spaces;
+  }
+</style>
+<h1>Local Variables Manipulator</h1>
+<div class="sections">
+  <section id="export">
+    <h2 class="heading">Export</h2>
+    <div class="body">
+      <ul>
+        <li><button id="exportButton" type="button">Export</button></li>
+      </ul>
+      <p><textarea id="exportJSONTextArea" cols="40" rows="10"></textarea></p>
+    </div>
+  </section>
+  <section id="import">
+    <h2 class="heading">Import</h2>
+    <div class="body">
+      <ul>
+        <li><button id="importButton" type="button">Import</button></li>
+        <li><input id="importFile" type="file" accept="application/json" /></li>
+      </ul>
+      <p><textarea id="importStatusTextArea" cols="40" rows="5" readonly>インポートに失敗した場合、ここにエラーメッセージが表示されます。</textarea></p>
+      <p><textarea id="importJSONTextArea" cols="40" rows="10"></textarea></p>
+    </div>
+  </section>
+</div>
+<script>
+(function() {
+  'use strict';
+
+  const exportButton = document.getElementById('exportButton');
+  const importButton = document.getElementById('importButton');
+  const importFile = document.getElementById('importFile');
+  const exportJSONTextArea = document.getElementById('exportJSONTextArea');
+  const importJSONTextArea = document.getElementById('importJSONTextArea');
+  const importStatusTextArea = document.getElementById('importStatusTextArea');
+
+  const post = (params) => window.parent.postMessage({ pluginMessage: params }, '*');
+  exportButton.addEventListener('click', () => post({ type: 'LVM-export' }));
+  importButton.addEventListener('click', () => post({ type: 'LVM-import', data: importJSONTextArea.value }));
+
+  const outputExportJSON = (str) => exportJSONTextArea.value = str;
+  const outputImportJSON = (str) => importJSONTextArea.value = str;
+  const outputImportStatus = (str) => importStatusTextArea.value = str;
+  window.onmessage = ({ data: { pluginMessage: msg } }) => {
+    if (msg.type === 'LVM-export-json') outputExportJSON(msg.data);
+    if (msg.type === 'LVM-import-status') outputImportStatus(msg.data);
+    if (msg.type === 'LVM-import-succeeded') {
+      exportButton.disabled = true;
+      importButton.disabled = true;
+    }
+  };
+
+  const fetchAsText = (file) => {
+    return new Promise((resolve) => {
+      const fr = new FileReader();
+      fr.onload = (evt) => resolve(evt.currentTarget.result);
+      fr.readAsText(file);
+    });
+  };
+  importFile.addEventListener('click', (evt) => evt.currentTarget.value = '');
+  importFile.addEventListener('input', async (evt) => {
+    const file = evt.currentTarget.files[0];
+    if (file == null) return;
+    outputImportJSON(await fetchAsText(file));
+  });
+}());
+</script>
