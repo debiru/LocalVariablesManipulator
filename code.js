@@ -73,7 +73,7 @@ const App = {
             // 既に登録済みの Local Variables の Collections 情報を取得する
             const collectionsInfo = await CIManip.getCollectionsInfo();
             // JSON を静的解析して、構文に問題があれば処理を中断する
-            JSONManip.varidateImportJSON(collectionsInfo, jsonObj);
+            JSONManip.validateImportJSON(collectionsInfo, jsonObj);
             // インポート処理前の Local Variables の Collections 情報を JSON に変換する
             const backupJSONObj = JSONManip.getJSONObjByCollectionsInfo(collectionsInfo);
             // インポート処理を実行する（実行中に例外が発生したら runtimeError として処理する）
@@ -141,7 +141,7 @@ const CIManip = {
      */
     async getCollectionsInfo() {
         const collections = await figma.variables.getLocalVariableCollectionsAsync();
-        const collectionsInfoArray = await Promise.all(collections.map(async (collection) => await CIManip.getCollectionInfo(collection)));
+        const collectionsInfoArray = await Promise.all(collections.map(collection => CIManip.getCollectionInfo(collection)));
         const keyCallback = (value) => value.collection.name;
         let collectionsInfo = Util.objMap(Util.arrayCombine(collectionsInfoArray), null, keyCallback);
         collectionsInfo = Util.objKeySort(collectionsInfo);
@@ -312,7 +312,7 @@ const JSONManip = {
     /**
      * Import された JSON の形式が妥当かどうかチェックする
      */
-    varidateImportJSON(collectionsInfo, jsonObj) {
+    validateImportJSON(collectionsInfo, jsonObj) {
         if (!Util.isObject(jsonObj)) {
             Util.Exception('JSON がオブジェクトではありません。');
         }
@@ -338,7 +338,7 @@ const JSONManip = {
                     Util.Exception(Util.sprintf("%s['%s']['$variableValues'] の値がオブジェクトではありません。", collectionName, variableName));
                 }
                 for (const [modeName, variableValue] of Object.entries(validJSONObjVariable.$variableValues)) {
-                    if (!AppUtil.varidateVariableValue(variableValue)) {
+                    if (!AppUtil.validateVariableValue(variableValue)) {
                         Util.Exception(Util.sprintf("%s['%s']['%s'] の値が string | number | boolean ではありません。", collectionName, variableName, modeName));
                     }
                 }
@@ -391,7 +391,7 @@ const AppUtil = {
     /**
      * 変数の値の型として妥当かどうかチェックする
      */
-    varidateVariableValue(value) {
+    validateVariableValue(value) {
         if (Util.isString(value))
             return true;
         if (Util.isNumber(value))

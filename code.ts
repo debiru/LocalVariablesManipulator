@@ -79,7 +79,7 @@ const App = {
       const collectionsInfo = await CIManip.getCollectionsInfo();
 
       // JSON を静的解析して、構文に問題があれば処理を中断する
-      JSONManip.varidateImportJSON(collectionsInfo, jsonObj);
+      JSONManip.validateImportJSON(collectionsInfo, jsonObj);
 
       // インポート処理前の Local Variables の Collections 情報を JSON に変換する
       const backupJSONObj = JSONManip.getJSONObjByCollectionsInfo(collectionsInfo);
@@ -152,7 +152,7 @@ const CIManip = {
    */
   async getCollectionsInfo() {
     const collections = await figma.variables.getLocalVariableCollectionsAsync();
-    const collectionsInfoArray = await Promise.all(collections.map(async collection => await CIManip.getCollectionInfo(collection)));
+    const collectionsInfoArray = await Promise.all(collections.map(collection => CIManip.getCollectionInfo(collection)));
     const keyCallback = (value: CollectionInfo) => value.collection.name;
     let collectionsInfo = Util.objMap(Util.arrayCombine(collectionsInfoArray), null, keyCallback) as CollectionsInfo;
     collectionsInfo = Util.objKeySort(collectionsInfo) as CollectionsInfo;
@@ -340,7 +340,7 @@ const JSONManip = {
   /**
    * Import された JSON の形式が妥当かどうかチェックする
    */
-  varidateImportJSON(collectionsInfo: CollectionsInfo, jsonObj: unknown) {
+  validateImportJSON(collectionsInfo: CollectionsInfo, jsonObj: unknown) {
     if (!Util.isObject(jsonObj)) {
       Util.Exception('JSON がオブジェクトではありません。');
     }
@@ -369,7 +369,7 @@ const JSONManip = {
           Util.Exception(Util.sprintf("%s['%s']['$variableValues'] の値がオブジェクトではありません。", collectionName, variableName));
         }
         for (const [modeName, variableValue] of Object.entries(validJSONObjVariable.$variableValues as PlainObject<unknown>)) {
-          if (!AppUtil.varidateVariableValue(variableValue)) {
+          if (!AppUtil.validateVariableValue(variableValue)) {
             Util.Exception(Util.sprintf("%s['%s']['%s'] の値が string | number | boolean ではありません。", collectionName, variableName, modeName));
           }
         }
@@ -431,7 +431,7 @@ const AppUtil = {
   /**
    * 変数の値の型として妥当かどうかチェックする
    */
-  varidateVariableValue(value: unknown) {
+  validateVariableValue(value: unknown) {
     if (Util.isString(value)) return true;
     if (Util.isNumber(value)) return true;
     if (Util.isBoolean(value)) return true;
